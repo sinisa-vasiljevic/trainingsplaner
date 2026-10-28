@@ -72,9 +72,9 @@
     gap: 6px;
   }
   #editDialog .two-col input[type="time"] {
-    width: 150px;
-    min-width: 150px;
-    max-width: 150px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
     height: 64px;
     min-height: 64px;
     max-height: 64px;
