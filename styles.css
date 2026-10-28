@@ -2,30 +2,33 @@
 @media(max-width:480px){main{padding:7px}.two-col{gap:6px}.two-col input[type="time"]{padding:9px 6px;font-size:16px}.card{padding:9px;border-radius:12px}.toolbar{gap:7px}.toolbar label{font-size:.76rem}.toolbar select{padding:8px 9px}.segmented button{padding:6px;font-size:.86rem}.day-heading{font-size:.82rem}.add-small{padding:5px 8px;font-size:.78rem}.session-content{padding:10px 9px}.team-name{font-size:1.12rem}.session-time{font-size:1.12rem}.session-meta{font-size:.94rem}.empty{padding:10px;font-size:.82rem}}
 @media(min-width:620px){.toolbar{grid-template-columns:1fr 1fr;align-items:end}.schedule{display:grid;grid-template-columns:1fr 1fr;gap:12px}.day-section{margin:0}.day-section:last-child:nth-child(odd){grid-column:1/-1}.login-card{padding:30px}}
 
-/* Mobile Korrektur: Zeitfelder bleiben vollstaendig im Dialog. */
-#editDialog form,
-#editDialog .two-col,
-#editDialog .two-col label {
+/* Mobile-Fix: Zeitfelder im Dialog duerfen auf iOS nicht aus ihrer Spalte wachsen. */
+#editDialog .two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+#editDialog .two-col > label {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
 }
-
-#editDialog .two-col {
-  width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 #editDialog .two-col input[type="time"] {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  box-sizing: border-box;
-  padding-left: 6px;
-  padding-right: 6px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding-left: 8px;
+  padding-right: 4px;
 }
-
-#editDialog .two-col input[type="time"]::-webkit-date-and-time-value {
-  min-width: 0;
-  text-align: center;
+@media (max-width: 480px) {
+  #editDialog form { min-width: 0; }
+  #editDialog .two-col { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+  #editDialog .two-col input[type="time"] { width: 100%; max-width: 100%; font-size: 16px; }
 }
