@@ -1,15 +1,13 @@
 rules_version = '2';
-service cloud.firestore { match /databases/{database}/documents {
-  function signedIn(){ return request.auth != null; }
-  function master(){ return signedIn() && request.auth.token.role == 'master'; }
-  function fields(list){ return request.resource.data.keys().hasOnly(list); }
-  match /settings/{id} { allow read: if signedIn(); allow create, delete: if master(); allow update: if master() && fields(['activePlan','appName','updatedAt','updatedBy']); }
-  match /plans/{id} { allow read: if signedIn(); allow create, update: if master() && fields(['name','active','sortOrder','createdAt','createdBy','updatedAt','updatedBy']) && request.resource.data.name is string && request.resource.data.active is bool && request.resource.data.sortOrder is int; allow delete: if master(); }
-  match /sessions/{id} { allow read: if signedIn(); allow create, update: if master() && fields(['planId','weekday','teamId','startTime','endTime','pitchId','sideId','cabinId','sortOrder','createdAt','createdBy','updatedAt','updatedBy']) && request.resource.data.weekday is int && request.resource.data.weekday >= 1 && request.resource.data.weekday <= 7 && request.resource.data.startTime is string && request.resource.data.endTime is string && exists(/databases/$(database)/documents/plans/$(request.resource.data.planId)) && exists(/databases/$(database)/documents/teams/$(request.resource.data.teamId)) && exists(/databases/$(database)/documents/pitches/$(request.resource.data.pitchId)) && exists(/databases/$(database)/documents/sides/$(request.resource.data.sideId)) && exists(/databases/$(database)/documents/cabins/$(request.resource.data.cabinId)); allow delete: if master(); }
-  match /teams/{id} { allow read: if signedIn(); allow create, update: if master() && request.resource.data.name is string && request.resource.data.active is bool; allow delete: if master(); }
-  match /pitches/{id} { allow read: if signedIn(); allow create, update: if master() && request.resource.data.name is string && request.resource.data.active is bool; allow delete: if master(); }
-  match /sides/{id} { allow read: if signedIn(); allow create, update: if master() && request.resource.data.name is string && request.resource.data.active is bool; allow delete: if master(); }
-  match /cabins/{id} { allow read: if signedIn(); allow create, update: if master() && request.resource.data.name is string && request.resource.data.active is bool; allow delete: if master(); }
-  match /users/{uid} { allow get: if signedIn() && (request.auth.uid == uid || master()); allow list: if master(); allow write: if false; }
-  match /{document=**} { allow read, write: if false; }
-}}
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isMaster() {
+      return isSignedIn() && request.auth.uid == "6qH3sJiqGQaCtO943YHaTZQe7ov2";
+    }
+    match /{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+  }
+}
