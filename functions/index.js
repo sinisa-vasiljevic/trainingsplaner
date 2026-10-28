@@ -1,1 +1,2 @@
-
+const {onCall,HttpsError}=require("firebase-functions/v2/https");const admin=require("firebase-admin");admin.initializeApp();
+exports.setUserRole=onCall(async req=>{if(!req.auth||req.auth.token.role!=="master")throw new HttpsError("permission-denied","Nur Master.");const {uid,role}=req.data||{};if(!uid||!["master","viewer"].includes(role))throw new HttpsError("invalid-argument","UID oder Rolle ungültig.");if(uid===req.auth.uid&&role!=="master")throw new HttpsError("failed-precondition","Eigene Master-Rolle kann nicht entfernt werden.");await admin.auth().setCustomUserClaims(uid,{role});await admin.firestore().doc(`users/${uid}`).set({role,updatedAt:admin.firestore.FieldValue.serverTimestamp()},{merge:true});return {ok:true};});
