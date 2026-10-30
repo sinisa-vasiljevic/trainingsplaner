@@ -1,8 +1,9 @@
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,deleteUser} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
 import {getFirestore,collection,doc,getDoc,getDocs,onSnapshot,setDoc,addDoc,updateDoc,deleteDoc,writeBatch,serverTimestamp,enableIndexedDbPersistence} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 const C=window.APP_CONFIG||{},MASTER=C.masterUid||'6qH3sJiqGQaCtO943YHaTZQe7ov2';
 const app=initializeApp(C.firebaseConfig||C.firebase),auth=getAuth(app),db=getFirestore(app),$=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],days=['','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+let registrationInProgress=false;
 enableIndexedDbPersistence(db).catch(e=>console.info('Firestore persistence:',e.code||e.message));
 const uiStyle=document.createElement('style');uiStyle.textContent=`.active-plan-name{display:block;margin-top:2px;padding:7px 10px;border-radius:10px;background:#e7f4ea;color:var(--green);text-align:center;font-weight:850}.loading-plan{min-height:150px;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;border-radius:12px;color:var(--muted);font-weight:750;box-shadow:var(--shadow)}.loader{width:20px;height:20px;border:3px solid #d8e5dc;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.plan-row{display:grid;grid-template-columns:124px minmax(0,1fr);align-items:start;gap:10px;padding:12px}.plan-row .master-info{min-width:0;padding-top:7px}.plan-row .master-info strong{display:block;overflow-wrap:anywhere}.plan-row .row-actions{display:grid;grid-template-columns:54px 54px minmax(108px,1fr);gap:7px;min-width:0}.plan-row .row-actions button{min-width:0;padding:9px 7px}.plan-row .activate-plan{grid-column:1/-1}.plan-row .copy-mini{grid-column:1/3}.plan-row .delete-mini{grid-column:3/4}@media(max-width:480px){.plan-row{grid-template-columns:112px minmax(0,1fr);gap:8px}.plan-row .row-actions{grid-template-columns:48px 48px minmax(100px,1fr);gap:6px}.plan-row .row-actions button{font-size:.82rem;padding:9px 5px}}`;document.head.appendChild(uiStyle);
 const CACHE='trainingsplan.data.v2', savedEditingPlan=localStorage.getItem('trainingsplan.editingPlan')||'';
@@ -43,9 +44,55 @@ async function copyPlan(id){const source=state.plans.find(x=>x.id===id);if(!sour
 async function deletePlan(id){if(state.plans.length<=1)return msg('Mindestens ein Trainingsplan muss bestehen bleiben.');const p=ent(state.plans,id);if(!confirm(`Plan „${p.name}“ und alle darin gespeicherten Trainings wirklich löschen?`))return;const remaining=state.plans.filter(x=>x.id!==id).sort(sort),next=remaining[0]?.id||'',b=writeBatch(db);for(const s of state.sessions.filter(x=>x.planId===id))b.delete(doc(db,'sessions',s.id));b.delete(doc(db,'plans',id));if(state.activePlan===id)b.set(doc(db,'settings','global'),{activePlan:next,updatedAt:serverTimestamp()},{merge:true});if(state.editingPlan===id)state.editingPlan=next;await b.commit();msg('Trainingsplan gelöscht.')}
 function page(p){state.page=p;$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p));$('.toolbar').classList.toggle('hidden',p!=='schedule');$('#weekView').classList.toggle('hidden',p!=='schedule'||state.view!=='week');$('#dayView').classList.toggle('hidden',p!=='schedule'||state.view!=='day');$('#whatsappView').classList.toggle('hidden',p!=='whatsapp');$('#adminView').classList.toggle('hidden',p!=='admin')}
 $('#loginForm').onsubmit=async e=>{e.preventDefault();try{await signInWithEmailAndPassword(auth,$('#loginEmail').value.trim().toLowerCase(),$('#loginPassword').value)}catch{msg('Anmeldung fehlgeschlagen.')}};$('#registerBtn').onclick=()=>$('#registerDialog').showModal();
-$('#registerForm').onsubmit=async e=>{e.preventDefault();const code=$('#registerCode').value.trim().toUpperCase(),email=$('#registerEmail').value.trim().toLowerCase(),pass=$('#registerPassword').value;try{const ref=doc(db,'invites',code),inv=await getDoc(ref);if(!inv.exists()||inv.data().active===false||inv.data().used||inv.data().email!==email)throw Error();const cred=await createUserWithEmailAndPassword(auth,email,pass),b=writeBatch(db);b.set(doc(db,'users',cred.user.uid),{name:inv.data().name,email,active:true,inviteCode:code,createdAt:serverTimestamp()});b.update(ref,{used:true,active:false,usedAt:serverTimestamp(),usedBy:cred.user.uid});await b.commit();$('#registerDialog').close();msg('Konto wurde eingerichtet.')}catch(e){msg(e.code==='auth/email-already-in-use'?'Für diese E-Mail besteht bereits ein Konto.':'Einladungscode oder E-Mail ist ungültig.')}};
+$('#registerForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(registrationInProgress)return;
+  const code=$('#registerCode').value.trim().toUpperCase(),email=$('#registerEmail').value.trim().toLowerCase(),pass=$('#registerPassword').value,submit=e.submitter||$('#registerForm button[type="submit"]');
+  if(!code||!email||!pass)return msg('Bitte alle Felder ausfüllen.');
+  if(pass.length<6)return msg('Das Passwort muss mindestens 6 Zeichen lang sein.');
+  let cred=null;
+  registrationInProgress=true;
+  if(submit){submit.disabled=true;submit.textContent='Konto wird eingerichtet …'}
+  try{
+    const ref=doc(db,'invites',code),inv=await getDoc(ref),data=inv.exists()?inv.data():null;
+    if(!data||data.active===false||data.used===true||String(data.email||'').trim().toLowerCase()!==email){const x=new Error('invite-invalid');x.code='invite-invalid';throw x}
+    cred=await createUserWithEmailAndPassword(auth,email,pass);
+    const b=writeBatch(db);
+    b.set(doc(db,'users',cred.user.uid),{name:data.name||email,email,active:true,inviteCode:code,createdAt:serverTimestamp()});
+    b.update(ref,{used:true,active:false,usedAt:serverTimestamp(),usedBy:cred.user.uid});
+    await b.commit();
+    registrationInProgress=false;
+    state.user=cred.user;state.master=cred.user.uid===MASTER;
+    $('#registerDialog').close();$('#registerForm').reset();
+    await seedData();subscribe();show();msg('Konto wurde erfolgreich eingerichtet.');
+  }catch(error){
+    registrationInProgress=false;
+    if(cred?.user){try{await deleteUser(cred.user)}catch(rollbackError){console.error('Unvollständiges Konto konnte nicht entfernt werden:',rollbackError)}}
+    console.error('Registrierung fehlgeschlagen:',error);
+    const text={
+      'auth/email-already-in-use':'Für diese E-Mail besteht bereits ein Konto.',
+      'auth/weak-password':'Das Passwort ist zu schwach. Bitte mindestens 6 Zeichen verwenden.',
+      'auth/invalid-email':'Die E-Mail-Adresse ist ungültig.',
+      'auth/network-request-failed':'Keine Verbindung zu Firebase. Bitte Internetverbindung prüfen.',
+      'permission-denied':'Das Konto konnte wegen fehlender Firestore-Berechtigung nicht eingerichtet werden.',
+      'invite-invalid':'Einladungscode oder E-Mail ist ungültig.'
+    };
+    msg(text[error.code]||'Konto konnte nicht eingerichtet werden.');
+  }finally{
+    if(submit){submit.disabled=false;submit.textContent='Konto einrichten'}
+  }
+};
 $('#inviteForm').onsubmit=async e=>{e.preventDefault();const name=$('#inviteName').value.trim(),email=$('#inviteEmail').value.trim().toLowerCase(),code=Math.random().toString(36).slice(2,8).toUpperCase();await setDoc(doc(db,'invites',code),{name,email,active:true,used:false,createdAt:serverTimestamp(),createdBy:state.user.uid});$('#inviteDialog').close();try{await navigator.clipboard.writeText(code)}catch{}msg(`Einladung erstellt. Code: ${code}`)};
 $('#resetBtn').onclick=async()=>{const e=$('#loginEmail').value.trim();if(!e)return msg('Bitte zuerst E-Mail eingeben.');try{await sendPasswordResetEmail(auth,e);msg('Reset-E-Mail wurde gesendet.')}catch{msg('Zurücksetzen nicht möglich.')}};
 $('#logoutBtn').onclick=()=>signOut(auth);$('#weekBtn').onclick=()=>{state.view='week';render()};$('#dayBtn').onclick=()=>{state.view='day';render()};$('#planSelect').onchange=e=>{if(state.master){state.editingPlan=e.target.value;localStorage.setItem('trainingsplan.editingPlan',state.editingPlan);render()}else e.target.value=state.activePlan};$('#editForm').onsubmit=async e=>{e.preventDefault();if(await saveSession())$('#editDialog').close()};$('#deleteSessionBtn').onclick=async()=>{const id=$('#sessionId').value;if(id&&confirm('Training wirklich löschen?')){await deleteDoc(doc(db,'sessions',id));$('#editDialog').close()}};$('#masterDataForm').onsubmit=async e=>{e.preventDefault();if(await saveMaster())$('#masterDataDialog').close()};$$('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$$('.bottom-nav button').forEach(b=>b.onclick=()=>page(b.dataset.page));
-onAuthStateChanged(auth,async u=>{stop();state.user=u;state.master=!!u&&u.uid===MASTER;if(!u){$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');return}if(!state.master){const p=await getDoc(doc(db,'users',u.uid));if(!p.exists()||p.data().active===false){msg('Dieser Zugang ist nicht freigeschaltet.');await signOut(auth);return}}await seedData();subscribe();show()});
+onAuthStateChanged(auth,async u=>{
+  if(registrationInProgress)return;
+  stop();state.user=u;state.master=!!u&&u.uid===MASTER;
+  if(!u){$('#appView').classList.add('hidden');$('#loginView').classList.remove('hidden');return}
+  if(!state.master){
+    const p=await getDoc(doc(db,'users',u.uid));
+    if(!p.exists()||p.data().active===false){msg('Dieser Zugang ist nicht freigeschaltet.');await signOut(auth);return}
+  }
+  await seedData();subscribe();show();
+});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
