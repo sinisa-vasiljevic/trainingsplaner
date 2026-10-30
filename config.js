@@ -7,5 +7,6 @@ window.APP_CONFIG = {
     messagingSenderId: "416839881426",
     appId: "1:416839881426:web:4e15ce56c8198c6125930b"
   },
-  masterUid: "6qH3sJiqGQaCtO943YHaTZQe7ov2"
+  masterUid: "6qH3sJiqGQaCtO943YHaTZQe7ov2",
+  vapidKey: "BGRbCAnYwR615yYAbIEqXNWADc5-aeX9fbFqzXz39tMa6cThofgsj-3f97El1Q86_j1Yrg2dMnIEBQnYxAzdKrQ"
 };
