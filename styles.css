@@ -12,3 +12,6 @@
 
 /* Version 1.1.2 - korrigierter Planabgleich */
 .app-version{display:block;margin-top:2px;font-size:11px;font-weight:800;letter-spacing:.04em;opacity:.72}.small-note{margin:0;color:var(--muted);font-size:.85rem}.sync-results{display:grid;gap:9px;max-height:58vh;overflow:auto}.sync-plan{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}.sync-plan-head{display:flex;align-items:flex-start;gap:8px}.sync-plan-head input,.sync-field input{width:auto;margin-top:3px;flex:0 0 auto}.sync-plan b{display:block}.sync-plan small{display:block;color:var(--muted);font-weight:650;margin-top:2px}.sync-fields{display:grid;gap:6px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}.sync-field{display:flex;align-items:flex-start;gap:8px;background:#f7faf8;border-radius:9px;padding:7px}.sync-warnings{color:#8a5200;font-size:.8rem;font-weight:750;margin-top:7px}.sync-existing{background:#eef9f1}.sync-ambiguous,.sync-missing{background:#fff7e8}.sync-plan ul{margin:7px 0 0;padding-left:19px;font-size:.82rem}.sync-plan>span{display:block;margin-top:6px;color:var(--muted);font-size:.8rem;font-weight:800}.sync-existing-list{margin-top:8px;padding-top:7px;border-top:1px solid var(--line)}
+
+/* Version 1.1.3 */
+.sync-missing-selectable{background:#f4fbf5;border-color:#b9d9c1}

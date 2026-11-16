@@ -54,3 +54,9 @@ Die Rollenänderung ist serverseitig vorbereitet (`functions/setUserRole`). Die 
 - Vorhandene andere Trainings derselben oder anderer Mannschaften werden nicht überschrieben oder gelöscht.
 - Doppelbelegungen von Platz, Seite oder Kabine sind erlaubt und werden nur als Warnung angezeigt.
 - Bei der Bearbeitung vorhandener Trainings erfolgt die Zuordnung weiterhin über Mannschaft, bisherigen Wochentag und bisherigen Zeitraum von/bis.
+
+
+## Version 1.1.3
+- Korrektur Planabgleich: Ist das Quelltraining bereits gespeichert/bearbeitet und fehlt im Zielplan vollständig, kann es dort jetzt per Checkbox neu angelegt werden.
+- Damit funktioniert die Übernahme auch dann, wenn das Training bereits in einem früheren Versuch nur im Quellplan gespeichert wurde.
+- Andere Trainings werden nicht überschrieben oder gelöscht; Doppelbelegungen bleiben Warnungen.
