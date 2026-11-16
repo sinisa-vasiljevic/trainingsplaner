@@ -48,3 +48,12 @@ Repository-Inhalt hochladen, Branch `main` verwenden und unter Settings > Pages 
 
 ## Sicherheitsgrenze
 Die Rollenänderung ist serverseitig vorbereitet (`functions/setUserRole`). Die Benutzerverwaltungs-Oberfläche zum Aufruf dieser Function ist noch nicht in der PWA eingebaut. Die eigentliche Trainingsplan-App, Firestore-Regeln und Masterbearbeitung sind enthalten.
+
+## Version 1.1.1
+- Kontrollierter Planabgleich nach dem Speichern eines Trainings.
+- Zuordnung bestehender Trainings über Mannschaft, Wochentag und bisherigen Zeitraum von/bis.
+- Änderungen werden nur für ausdrücklich ausgewählte Zielpläne und Felder übernommen.
+- Bei mehreren möglichen Trainingseinträgen erfolgt keine automatische Zuordnung.
+- Neue Trainings können gezielt zusätzlich in andere Pläne eingetragen oder nur im aktuellen Plan belassen werden.
+- Andere Mannschaften und deren Trainings werden niemals überschrieben oder gelöscht.
+- Doppelbelegungen von Platz, Seite oder Kabine sind erlaubt und werden nur als Warnung angezeigt.

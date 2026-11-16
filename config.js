@@ -9,3 +9,4 @@ window.APP_CONFIG = {
   },
   masterUid: "6qH3sJiqGQaCtO943YHaTZQe7ov2"
 };
+window.APP_VERSION = "1.1.1";
