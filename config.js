@@ -8,4 +8,4 @@ window.APP_CONFIG = {
     appId: "1:416839881426:web:4e15ce56c8198c6125930b"
   },
   masterUid: "6qH3sJiqGQaCtO943YHaTZQe7ov2"
-};window.APP_VERSION = "1.2.0";
+};window.APP_VERSION = "1.2.1";

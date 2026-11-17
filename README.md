@@ -62,9 +62,10 @@ Die Rollenänderung ist serverseitig vorbereitet (`functions/setUserRole`). Die 
 - Andere Trainings werden nicht überschrieben oder gelöscht; Doppelbelegungen bleiben Warnungen.
 
 
-### Version 1.2.0
-- Neuer Reiter „Spiele“ für alle anstehenden VfR-Spiele.
-- Liest `spiele-live.json` und `manuelle-spiele.json` aus dem Heimspielplaner-Repository ausschließlich lesend.
-- Sortierung pro Datum: zuerst Heimspiele nach Uhrzeit, anschließend Auswärtsspiele nach Uhrzeit.
-- Keine Mannschaftsfilter oder Mannschaftsblöcke.
-- Die bestehende Trainingsplan-, Benutzer-, Planabgleich- und Firebase-Logik bleibt unverändert.
+### Version 1.2.1
+- Neuer Reiter „Spiele“ liest `spiele-live.json` und `manuelle-spiele.json` aus dem Heimspielplaner.
+- Beim Wechsel auf „Spiele“ werden beide Dateien immer neu abgerufen.
+- Der Aktualisieren-Button erzwingt denselben vollständigen Neuabruf.
+- Anzeige trennt „Zuletzt abgerufen“ vom „Datenstand Quelle“.
+- Sortierung: je Datum zuerst Heimspiele nach Uhrzeit, danach Auswärtsspiele nach Uhrzeit.
+- Keine Mannschaftsfilter.
