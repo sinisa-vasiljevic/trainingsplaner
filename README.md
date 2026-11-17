@@ -60,3 +60,11 @@ Die Rollenänderung ist serverseitig vorbereitet (`functions/setUserRole`). Die 
 - Korrektur Planabgleich: Ist das Quelltraining bereits gespeichert/bearbeitet und fehlt im Zielplan vollständig, kann es dort jetzt per Checkbox neu angelegt werden.
 - Damit funktioniert die Übernahme auch dann, wenn das Training bereits in einem früheren Versuch nur im Quellplan gespeichert wurde.
 - Andere Trainings werden nicht überschrieben oder gelöscht; Doppelbelegungen bleiben Warnungen.
+
+
+### Version 1.2.0
+- Neuer Reiter „Spiele“ für alle anstehenden VfR-Spiele.
+- Liest `spiele-live.json` und `manuelle-spiele.json` aus dem Heimspielplaner-Repository ausschließlich lesend.
+- Sortierung pro Datum: zuerst Heimspiele nach Uhrzeit, anschließend Auswärtsspiele nach Uhrzeit.
+- Keine Mannschaftsfilter oder Mannschaftsblöcke.
+- Die bestehende Trainingsplan-, Benutzer-, Planabgleich- und Firebase-Logik bleibt unverändert.
